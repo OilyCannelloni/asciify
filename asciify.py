@@ -29,10 +29,6 @@ class IACurves:
     def homographic(a, b, c, d):
         return lambda x: (a*x+b)/(c*x+d)
 
-    @staticmethod
-    def binary(threshold):
-        return lambda x: 0 if x < threshold else 255
-
 
 class ImageAsciifier:
     def __init__(self, func=None, chars=None, symbols=None):
@@ -66,10 +62,11 @@ class ImageAsciifier:
         :type func: LambdaType
         :return: {threshold: symbol} dict
         """
-        l = len(self.symbols)
-        self.func = func
-        self.chars = {func(x): sym for x, sym in zip(range(l, 255 + 255 % l, int(255/l)), self.symbols)}
-        self.chars[256] = '#'
+        if func is not None:
+            l = len(self.symbols)
+            self.func = func
+            self.chars = {func(x): sym for x, sym in zip(range(l, 255 + 255 % l, int(255/l)), self.symbols)}
+            self.chars[256] = '#'
         return self.chars
 
     def to_grayscale(self, load, resize):
