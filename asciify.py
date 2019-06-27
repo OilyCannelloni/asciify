@@ -1,5 +1,6 @@
 from PIL import Image
 
+
 class IACurves:
     """
     Set of tone curve functions which are
@@ -14,9 +15,33 @@ class IACurves:
     def shift(val):
         return lambda x: x+val
 
+    @staticmethod
+    def linear(ax, b):
+        return lambda x: ax*x+b
+
+    @staticmethod
+    def poly(*args):
+        return lambda x: sum([args[i]*x**i for i in range(len(args))])
+
+    @staticmethod
+    def homographic(a, b, c, d):
+        return lambda x: (a*x+b)/(c*x+d)
+
+    @staticmethod
+    def binary(threshold):
+        return lambda x: 0 if x < threshold else 255
+
 
 class ImageAsciifier:
-    def __init__(self, func=None, chars=None):
+    def __init__(self, func=None, chars=None, symbols=None):
+        """
+        Class initializer
+        :param func: Preset tone curve function (see IACurves)
+        :type func: LambdaType
+        :param chars: Predefined threshold map
+        :type chars: {threshold: symbol} dict
+        :param symbols: List of symbols used to draw
+        """
         self.data = None
         self.image = None
         self.image_width = 0
@@ -25,9 +50,8 @@ class ImageAsciifier:
         self.ascii = []
 
         # Set of symbols in order from darkest to brightest
-        # TODO make this overrideable
-        self.symbols = [' ', '`', "'", '.', '"', ',', '-', '^', '>', '=', '+', '*', 'c', 'u', 'r', 'o',
-                        'h', 'i', 'e', 'a', 'x', 'w', '?', 'O', 'D', 'N', 'S', 'M', 'X', 'W', '@', '#']
+        self.symbols = symbols or [' ', '`', "'", '.', '"', ',', '-', '^', '>', '=', '+', '*', 'c', 'u', 'r', 'o',
+                                   'h', 'i', 'e', 'a', 'x', 'w', '?', 'O', 'D', 'N', 'S', 'M', 'X', 'W', '@', '#']
 
         self.func = func or (lambda x: x)
         self.chars = chars or self.define_tone_curve(self.func)
@@ -82,13 +106,13 @@ class ImageAsciifier:
         self.data = list(self.image.getdata())
         self.data = [self.data[r:r+self.image_width] for r in range(0, self.image_length, self.image_width)]
 
-    def to_ascii(self, path=None, resize=None, draw=False):
+    def img_to_ascii(self, path=None, resize=None, draw=False):
         """
         Converts an image to ASCII Art
         :param path: Path to image, if not given the loaded image is taken
         :param resize: Resize multiplier, if not given the image is not resized
         :param draw: if True prints the image to console
-        :return:
+        :return: List of strings containing frame
         """
         # TODO file printing
         if path is not None:
@@ -113,3 +137,9 @@ class ImageAsciifier:
         """
         for line in self.ascii:
             print(line)
+
+
+class VideoAsciifier(ImageAsciifier):
+    def __init__(self, func=None, chars=None, symbols=None):
+        super().__init__(func, chars, symbols)
+        

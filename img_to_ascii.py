@@ -18,5 +18,5 @@ Set console font size to something like 7 or resize even further!
 """
 
 imgAscii = ImageAsciifier(func=IACurves.CONTRAST_M)
-imgAscii.to_ascii(path=p, resize=0.05, draw=True)
+imgAscii.img_to_ascii(path=p, resize=0.05, draw=True)
 
