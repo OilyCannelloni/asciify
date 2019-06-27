@@ -1,4 +1,6 @@
 from PIL import Image
+import cv2
+import os
 
 
 class IACurves:
@@ -70,14 +72,14 @@ class ImageAsciifier:
         self.chars[256] = '#'
         return self.chars
 
-    def to_grayscale(self, path, resize):
+    def to_grayscale(self, load, resize):
         """
         Reads and converts an image file to grayscale
-        :param path: Path to file
+        :param load: Path to file OR PIL image object
         :param resize: Resize multiplier, 0.12=12% of original
         :return: resized image converted to grayscale
         """
-        img = Image.open(path)
+        img = Image.open(load) if type(load) is str else load
         if resize is not None:
             img = self.resize(img, resize)
         return img.convert('L')
@@ -93,20 +95,20 @@ class ImageAsciifier:
         w, h = [int(percentage*i) for i in image.size]
         return image.resize((w, h), Image.ANTIALIAS)
 
-    def load(self, path, resize=None):
+    def load(self, img, resize=None):
         """
         Reads an image file, resizes it and converts to grayscale
-        :param path: Path to file
+        :param img: Path to file OR PIL image object
         :param resize: Resize multiplier
         :return: None
         """
-        self.image = self.to_grayscale(path, resize)
+        self.image = self.to_grayscale(img, resize)
         self.image_width, self.image_height = self.image.size
         self.image_length = self.image_width*self.image_height
         self.data = list(self.image.getdata())
         self.data = [self.data[r:r+self.image_width] for r in range(0, self.image_length, self.image_width)]
 
-    def img_to_ascii(self, path=None, resize=None, draw=False):
+    def img_to_ascii(self, load=None, resize=None, draw=False):
         """
         Converts an image to ASCII Art
         :param path: Path to image, if not given the loaded image is taken
@@ -115,8 +117,9 @@ class ImageAsciifier:
         :return: List of strings containing frame
         """
         # TODO file printing
-        if path is not None:
-            self.load(path, resize)
+        self.ascii = []
+        if load is not None:
+            self.load(load, resize)
         for row in range(self.image_height):
             out = []
             for pix in self.data[row]:
@@ -140,6 +143,23 @@ class ImageAsciifier:
 
 
 class VideoAsciifier(ImageAsciifier):
-    def __init__(self, func=None, chars=None, symbols=None):
+    def __init__(self, func=None, chars=None, symbols=None, fps=10):
         super().__init__(func, chars, symbols)
-        
+        self.fps = fps
+        self.vc = cv2.VideoCapture(0)
+
+    def cam_capture(self):
+        cv2.imwrite("frame.jpg", self.vc.read()[1])
+        return Image.open("frame.jpg")
+
+    def start_preview(self, fps=None, resize=None):
+        self.fps = fps or self.fps
+        try:
+            while True:
+                frame=self.cam_capture()
+                self.img_to_ascii(load=frame, resize=resize, draw=False)
+                os.system("cls")
+                print("Press ESC to stop preview\n")
+                self.print_ascii()
+        except KeyboardInterrupt:
+            self.vc.release()
