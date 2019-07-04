@@ -31,13 +31,13 @@ class IACurves:
 
 
 class ImageAsciifier:
-    def __init__(self, func=None, chars=None, symbols=None):
+    def __init__(self, func=None, charmap=None, symbols=None):
         """
         Class initializer
         :param func: Preset tone curve function (see IACurves)
         :type func: LambdaType
-        :param chars: Predefined threshold map
-        :type chars: {threshold: symbol} dict
+        :param charmap: Predefined threshold map
+        :type charmap: {threshold: symbol} dict
         :param symbols: List of symbols used to draw
         """
         self.data = None
@@ -52,7 +52,7 @@ class ImageAsciifier:
                                    'h', 'i', 'e', 'a', 'x', 'w', '?', 'O', 'D', 'N', 'S', 'M', 'X', 'W', '@', '#']
 
         self.func = func or (lambda x: x)
-        self.chars = chars or self.define_tone_curve(self.func)
+        self.charmap = charmap or self.define_tone_curve(self.func)
 
     def define_tone_curve(self, func):
         """
@@ -65,9 +65,9 @@ class ImageAsciifier:
         if func is not None:
             l = len(self.symbols)
             self.func = func
-            self.chars = {func(x): sym for x, sym in zip(range(l, 255 + 255 % l, int(255/l)), self.symbols)}
-            self.chars[256] = '#'
-        return self.chars
+            self.charmap = {func(x): sym for x, sym in zip(range(l, 255 + 255 % l, int(255 / l)), self.symbols)}
+            self.charmap[256] = '#'
+        return self.charmap
 
     def to_grayscale(self, load, resize):
         """
@@ -105,7 +105,7 @@ class ImageAsciifier:
         self.data = list(self.image.getdata())
         self.data = [self.data[r:r+self.image_width] for r in range(0, self.image_length, self.image_width)]
 
-    def img_to_ascii(self, load=None, resize=None, draw=False):
+    def img_to_ascii(self, load=None, resize=None, draw=False, file=None):
         """
         Converts an image to ASCII Art
         :param path: Path to image, if not given the loaded image is taken
@@ -120,28 +120,38 @@ class ImageAsciifier:
         for row in range(self.image_height):
             out = []
             for pix in self.data[row]:
-                for threshold in self.chars.keys():
+                for threshold in self.charmap.keys():
                     if pix <= threshold:
-                        out.append(self.chars[threshold])
-                        out.append(self.chars[threshold])
+                        out.append(self.charmap[threshold])
+                        out.append(self.charmap[threshold])
                         break
             self.ascii.append("".join(out))
-        if draw:
-            self.print_ascii()
+        self.print_ascii(draw, file)
         return self.ascii
 
-    def print_ascii(self):
+    def print_ascii(self, draw, file):
         """
         Prints the stored image to console
         :return: None
         """
-        for line in self.ascii:
-            print(line)
+        if file is not None:
+            try:
+                with open(file, 'w') as f:
+                    for line in self.ascii:
+                        f.write(line)
+            except Exception as e:
+                print("Invalid path!: {}".format(e))
+        if draw:
+            for line in self.ascii:
+                print(line)
+
+
+
 
 
 class VideoAsciifier(ImageAsciifier):
-    def __init__(self, func=None, chars=None, symbols=None, fps=10):
-        super().__init__(func, chars, symbols)
+    def __init__(self, func=None, charmap=None, symbols=None, fps=10):
+        super().__init__(func, charmap, symbols)
         self.fps = fps
         self.vc = cv2.VideoCapture(0)
 
@@ -157,6 +167,6 @@ class VideoAsciifier(ImageAsciifier):
                 self.img_to_ascii(load=frame, resize=resize, draw=False)
                 os.system("cls")
                 print("Press ESC to stop preview\n")
-                self.print_ascii()
+                self.print_ascii(True, None)
         except KeyboardInterrupt:
             self.vc.release()

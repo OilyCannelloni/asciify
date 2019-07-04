@@ -16,6 +16,6 @@ Feel free to experiment with different settings and images!
 Set console font size to something like 7 or resize even further down!
 """
 
-vidAscii = VideoAsciifier(func=IACurves.binary(127))
-vidAscii.start_preview(fps=30, resize=0.25)
+vidAscii = VideoAsciifier(func=IACurves.CONTRAST_L)
+vidAscii.start_preview(fps=30, resize=0.21)
 # exit using CTRL+C

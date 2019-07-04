@@ -4,7 +4,7 @@
 
 from asciify import ImageAsciifier, IACurves
 
-p = "./images/sunset.jpg"  # Enter image path here
+p = "./images/rose.jpg"  # Enter image path here
 
 """
 OPTIMAL PARAMETERS:
@@ -18,4 +18,4 @@ Set console font size to something like 7 or resize even further down!
 """
 
 imgAscii = ImageAsciifier(func=IACurves.shift(-20))
-imgAscii.img_to_ascii(load=p, resize=0.16, draw=True)
+imgAscii.img_to_ascii(load=p, resize=0.09, draw=True)
