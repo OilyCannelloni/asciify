@@ -32,29 +32,28 @@ The list of symbols must be in order from darkest to brightest.
 
 The graph above shows three functions:
 - y=x (blue), which is a default linear map
-- y=(-50000)/(x+130) + 384 (black), which results in high contrast
-- y=(-100000)/(x/2+165) + 600, which gives a low contrast
+- y=(-50000)/(x+130) + 384 (black), which results in very high contrast
+- y=(-100000)/(x/2+165) + 600, which gives a slightly lower contrast
 
 Notice, that what the black function does, is that
 it makes the intervals longer for low values and shorter for higher ones. This means, that shades in higher detail can be seen for bright spots,
 and the darker ones are primarly black. All in all this makes some images more clear.
 
 Some basic functions are defined under 
-`from asciify import IAcurves`
+`from asciify import IACurves`
 
 ## Custom parameters
 
 You can define custom parameters by using the following commands:
-* Threshold function
-use define_tone_curve() and a lambda:
+* Threshold function: 
+define_tone_curve() and a lambda:
 `IA.define_tone_curve(lambda x: 6.4*x**(2/3))`
 or use a predefined model:
 `IA.define_tone_curve(IACurves.linear(1.05, -12))  # gives y=1.05x+12`
-* Symbol set
-use _symbols_ parameter on initialization:
+* Symbol set: _symbols_ parameter on initialization:
 `IA = ImageAsciifier(symbols=['.', 'o', 'O', '#']`
-* Custom map
-use _charmap_ parameter on initialization:
+* Custom map:
+_charmap_ parameter on initialization:
 `IA = ImageAsciifier(charmap={127: ' ', 255: "H"})`
 for binary output.
 
